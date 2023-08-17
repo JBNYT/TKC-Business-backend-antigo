@@ -8,29 +8,39 @@ router.post("/", async (req, res) => {
   const { nome, email, telefone, resultados, idade, sexo } = req.body;
 
   try {
+    let predominancia;
+
     // Verifica se o email já existe no banco de dados
     const emailExistente = await Predominancia.findOne({ email });
 
     if (emailExistente) {
-      return res.status(400).json({ error: "Este email já está cadastrado." });
+      // Atualize o registro existente com os novos dados
+      emailExistente.nome = nome;
+      emailExistente.telefone = telefone;
+      emailExistente.resultados = resultados;
+      emailExistente.idade = idade;
+      emailExistente.sexo = sexo;
+
+      // Salve o registro atualizado
+      predominancia = await emailExistente.save();
+    } else {
+      // Crie um novo documento Predominancia com os dados recebidos
+      predominancia = new Predominancia({
+        nome,
+        email,
+        telefone,
+        resultados,
+        idade,
+        sexo,
+      });
+
+      // Salve o documento no banco de dados
+      predominancia = await predominancia.save();
     }
-
-    // Crie um novo documento Predominancia com os dados recebidos
-    const predominancia = new Predominancia({
-      nome,
-      email,
-      telefone,
-      resultados,
-      idade,
-      sexo,
-    });
-
-    // Salve o documento no banco de dados
-    const result = await predominancia.save();
 
     res.status(201).json({
       message: "Dados de predominância salvos com sucesso!",
-      predominancia: result,
+      predominancia,
     });
   } catch (error) {
     res.status(500).json({
@@ -40,3 +50,4 @@ router.post("/", async (req, res) => {
 });
 
 module.exports = router;
+
