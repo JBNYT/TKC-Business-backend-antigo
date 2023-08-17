@@ -11,25 +11,35 @@ router.post("/", async (req, res) => {
     const emailExistente = await Formulario.findOne({ email });
 
     if (emailExistente) {
-      return res.status(400).json({ error: "Este email já está cadastrado." });
+      // Atualize o registro existente com os novos dados
+      emailExistente.nome = nome;
+      emailExistente.telefone = telefone;
+      emailExistente.idade = idade;
+      emailExistente.sexo = sexo;
+      emailExistente.resultados = resultados;
+
+      // Salve o registro atualizado
+      await emailExistente.save();
+
+      res.status(200).json({ message: "Dados atualizados com sucesso!" });
+    } else {
+      // Cria o objeto do formulário
+      const formulario = new Formulario({
+        nome,
+        email,
+        telefone,
+        idade,
+        sexo,
+        resultados,
+      });
+
+      // Salva os dados no banco de dados
+      await formulario.save();
+
+      res.status(200).json({ message: "Dados salvos com sucesso!" });
     }
-
-    // Cria o objeto do formulário
-    const formulario = new Formulario({
-      nome,
-      email,
-      telefone,
-      idade,
-      sexo,
-      resultados,
-    });
-
-    // Salva os dados no banco de dados
-    await formulario.save();
-
-    res.status(200).json({ message: "Dados salvos com sucesso!" });
   } catch (error) {
-    res.status(500).json({ error: "Ocorreu um erro ao salvar os dados." });
+    res.status(500).json({ error: "Ocorreu um erro ao salvar/atualizar os dados." });
   }
 });
 
